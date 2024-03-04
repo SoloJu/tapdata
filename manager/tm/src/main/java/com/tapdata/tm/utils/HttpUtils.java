@@ -70,8 +70,9 @@ public class HttpUtils {
     }
 
     public static String sendPostData(String path, String bodyJson,String userId) {
-//        log.info("request tcm, path：{}，bodyJson：{}  ",path,bodyJson);
+        log.info("request tcm, path：{}，bodyJson：{}  ",path,bodyJson);
         String result = "";
+        CloseableHttpResponse response =null;
         try(CloseableHttpClient httpClient = HttpClients.createDefault()) {
             // 创建httpclient对象
             StringEntity entity = new StringEntity(bodyJson, Charset.forName("UTF-8"));
@@ -81,17 +82,14 @@ public class HttpUtils {
             httpPost.addHeader("user_id",userId);
             httpPost.setEntity(entity);
             // 通过请求对象获取响应对象
-					try(CloseableHttpResponse response = httpClient.execute(httpPost)) {
-						// 获取结果实体
-						// 判断网络连接状态码是否正常(0--200都数正常)
-						if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-							result = EntityUtils.toString(response.getEntity(), UTF_8);
-						} else {
-							log.error("post请求传输 异常.url:{}, bodyJson:{}", path, bodyJson);
-						}
-					} catch (IOException e) {
-						log.error("关闭response 异常 ", e);
-					}
+            response = httpClient.execute(httpPost);
+            // 获取结果实体
+            // 判断网络连接状态码是否正常(0--200都数正常)
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                result = EntityUtils.toString(response.getEntity(), UTF_8);
+            } else {
+                log.error("post请求传输 异常.url:{}, bodyJson:{}", path, bodyJson);
+            }
 
 
         } catch (ClientProtocolException e) {
@@ -100,6 +98,16 @@ public class HttpUtils {
         } catch (IOException e) {
             log.error("post请求传输 异常 ", e);
             log.error("post请求传输 异常.path:{}, headMap:{}", path, bodyJson);
+        }
+        finally {
+            try {
+                // 释放链接
+                if (null!=response){
+                    response.close();
+                }
+            } catch (IOException e) {
+                log.error("关闭response 异常 ", e);
+            }
         }
         log.debug(result);
         return result;

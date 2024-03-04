@@ -14,8 +14,4 @@ public class AspectRunnableUtil {
             }
         };
     }
-
-		public static void aspectAndStart(DisposableThreadGroupAspect<? extends DisposableThreadGroupBase> aspect, Runnable runnable) {
-			new Thread(aspectRunnable(aspect, runnable)).start();
-		}
 }
